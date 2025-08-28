@@ -34,7 +34,6 @@ class EdoSolver:
         if params == 2:
             return self._solve_first_order(function)
         raise ValueError(f"{params} parameters given: not implemented")
-        
 
     def explicit_euler(self, f: Callable) -> list[float]:
         """
@@ -75,7 +74,6 @@ class EdoSolver:
             pos.append(x)
 
         return times, pos
-    
 
     def _solve_first_order(self, f: Callable):
         t, y = 0.0 , self.x0
