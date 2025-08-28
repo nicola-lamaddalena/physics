@@ -2,6 +2,7 @@ import sys
 from typing import Callable
 import matplotlib.pyplot as plt
 import numpy as np
+import inspect
 
 def harmonic_oscillator(x: float, k: float = 1, m: float = 1) -> float:
     return -(k/m)*x
@@ -12,13 +13,27 @@ def sinx(x: float) -> float:
 def pendulum(x: float, g: float = 9.8, l: float = 1) -> float:
     return -(g/l)*np.sin(x)
 
+def f(t: float, y: float) -> float:
+    return t**3 * np.sqrt(4 - y**2)
+
 class EdoSolver:
-    def __init__(self, x0: float, v0: float, delta: float, t: float = 100):
+    def __init__(self, x0: float, v0: float | None = None, t: float = 10):
         self.x0 = x0
         self.v0 = v0
-        self.delta = delta
+        self.delta = min(0.001, t/1000)
         self.t = t
+    
+    def solve(self, f: Callable):
+        sig = inspect.signature(f)
+        params = len(sig.parameters)
 
+        if params == 1:
+            return self._solve_second_order(f)
+        elif params == 2:
+            return self._solve_first_order(f)
+        else:
+            raise ValueError(f"{params} parameters non implemented")
+        
     def explicit_euler(self, f: Callable) -> list[float]:
         """
         """
@@ -35,31 +50,44 @@ class EdoSolver:
 
         return pos
 
-    def semi_implicit_euler(self, f: Callable) -> list[float]:
+    def _solve_second_order(self, f: Callable) -> tuple[list[float], list[float]]:
         """
+        Semi-Implicit Euler method
         """
-        t0 = 0 # time interval of the simulation
-        x, v = self.x0, self.v0
-        pos = [x]
+        t0, x, v = 0.0, self.x0, self.v0
+        times, pos = [t0], [x]
 
         while t0 < self.t:
             v += f(x) * self.delta
             x += v * self.delta
-            pos.append(x)
             t0 += self.delta
+            times.append(t0)
+            pos.append(x)
 
-        return pos
+        return times, pos
+    
+    def _solve_first_order(self, f: Callable):
+        t, y = 0.0 , self.x0
+        times, sol = [t], [y]
+        while t < self.t:
+            y += f(t, y) * self.delta
+            t += self.delta
+            times.append(t)
+            sol.append(y)
 
+        return times, sol
+    
 try:
     t = int(sys.argv[1])
-    edo = EdoSolver(-0.5, 0.2, 0.01, t)
+    edo = EdoSolver(-0.5, 0.2, t)
 except ValueError:
-    edo = EdoSolver(-0.5, 0.2, 0.01)
-pos_implicit = edo.semi_implicit_euler(pendulum)
-pos_explicit = edo.explicit_euler(pendulum)
-time = [i * edo.delta for i in range(len(pos_implicit))]
-plt.plot(time, pos_explicit, color="red", label="Explicit Euler Method")
-plt.plot(time, pos_implicit, color="blue", label= "Semi-Implicit euler Method")
+    edo = EdoSolver(-0.5, 0.2)
+except IndexError:
+    edo = EdoSolver(-0.5, 0.2)
+gen = edo._solve_first_order(f)
+harm = edo._solve_second_order(harmonic_oscillator)
+plt.plot(harm[0], harm[1], color="blue", label= "Semi-Implicit euler Method")
+plt.plot(gen[0], gen[1], color="red", label="Semi-Implicit Euler Method") 
 plt.xlabel("Time (s)")
 plt.ylabel("Position (m)")
 plt.grid()
