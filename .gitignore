@@ -206,4 +206,6 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-./electromagnetism/tripole.json
+# ignore config files created for the em simulation
+.electromagnetism/*.json
+
