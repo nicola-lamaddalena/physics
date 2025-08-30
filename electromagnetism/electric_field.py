@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Constants
-POINTS = 31
+POINTS = 21
 EPSILON_ZERO = 8.85e-12
 
 # --- Default Configuration ---
@@ -24,7 +24,8 @@ DEFAULT_CONFIG = {
         'charge2': {'x': -1.2, 'y': 0.0, 'q': 1e-10}
     },
     'colormap': 'inferno',
-    'r_min': 0.1
+    'r_min': 0.1,
+    'title': 'Electric dipole field visualization'
 }
 DEFAULT_CONFIG_FILENAME = 'config_default.json'
 
@@ -140,6 +141,7 @@ def main():
     charges_config = config_data["charges"]
     cmap_config = config_data["colormap"]
     r_min_config = config_data["r_min"]
+    title_config = config_data["title"]
 
     # Grid initialization
     x, y = np.meshgrid(np.linspace(-3, 3, POINTS), np.linspace(-3, 3, POINTS))
@@ -165,9 +167,9 @@ def main():
     fv_norm = fv / magnitude_safe
 
     # Plotting
-    fig, ax = plt.subplots(figsize=(8, 8))
+    fig, ax = plt.subplots(figsize=(14, 14))
     ax.quiver(fx, fy, fu_norm, fv_norm, color=colors)
-    ax.set_title("Electric dipole field visualization", color="white")
+    ax.set_title(title_config, color="white")
     ax.set_xlabel("x")
     ax.set_ylabel("y")
     ax.grid(True, color="dimgray")
